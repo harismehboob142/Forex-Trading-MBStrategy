@@ -1,0 +1,38 @@
+//@version=5
+strategy("CCI Cross Strategy with Precondition", overlay=true, default_qty_type=strategy.fixed, default_qty_value=0.01)
+
+// CCI Calculation
+cciLength = 20
+cciSource = close
+cci = ta.cci(cciSource, cciLength)
+
+// CCI Thresholds
+cciUpperThreshold = 100
+cciLowerThreshold = -100
+
+// Function to check if CCI was below 100 for the last 5 bars
+cciWasBelowForPeriod() =>
+    wasBelow = true
+    for i = 1 to 5
+        if cci[i] >= cciUpperThreshold
+            wasBelow := false
+    wasBelow
+
+// Function to check if CCI was above -100 for the last 5 bars
+cciWasAboveForPeriod() =>
+    wasAbove = true
+    for i = 1 to 5
+        if cci[i] <= cciLowerThreshold
+            wasAbove := false
+    wasAbove
+
+// Conditions for crossing the CCI thresholds with the precondition
+cciCrossUp = cciWasBelowForPeriod() and cci > cciUpperThreshold
+cciCrossDown = cciWasAboveForPeriod() and cci < cciLowerThreshold
+
+// Plot markers on chart for signals
+plotshape(series=cciCrossUp, title="Buy Marker", location=location.belowbar, color=color.green, style=shape.triangleup, size=size.small)
+plotshape(series=cciCrossDown, title="Sell Marker", location=location.abovebar, color=color.red, style=shape.triangledown, size=size.small)
+
+// Plot CCI for reference (optional)
+plot(cci, title="CCI", color=color.blue)

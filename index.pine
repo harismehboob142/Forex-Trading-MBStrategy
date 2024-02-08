@@ -1,0 +1,48 @@
+//@version=5
+strategy("MagicBreakout Strategy with Risk Management", overlay=true, initial_capital=100, default_qty_type=strategy.percent_of_equity, default_qty_value=1)
+
+// Indicator setup
+cciPeriod = 20
+cci = ta.cci(close, cciPeriod)
+waveTop = ta.ema(high, 34)
+waveMiddle = ta.ema(close, 34)
+waveBottom = ta.ema(low, 34)
+
+// Plotting The Wave
+plot(waveTop, color=color.red, title="Wave Top")
+plot(waveMiddle, color=color.blue, title="Wave Middle")
+plot(waveBottom, color=color.green, title="Wave Bottom")
+
+// Entry conditions
+longCondition = cci[1] < 100 and cci > 100 and close > waveBottom
+shortCondition = cci[1] > -100 and cci < -100 and close < waveTop
+
+// Entering positions
+if (longCondition)
+    strategy.entry("Long", strategy.long)
+
+if (shortCondition)
+    strategy.entry("Short", strategy.short)
+
+// Risk management parameters
+riskPercentage = 1.0 // Risk 1% of account balance
+rewardRatio = 2.0 // Reward-to-risk ratio
+
+// Dynamic stop loss and take profit calculation
+atrPeriod = 14
+atr = ta.atr(atrPeriod)
+stopLossATRMultiple = 3 // Stop loss at 3x ATR
+takeProfitATRMultiple = stopLossATRMultiple * rewardRatio // Take profit at 2x the stop loss distance
+
+// Calculating stop loss and take profit values
+longSL = close - atr * stopLossATRMultiple
+longTP = close + atr * takeProfitATRMultiple
+shortSL = close + atr * stopLossATRMultiple
+shortTP = close - atr * takeProfitATRMultiple
+
+// Implementing TP and SL for long and short positions
+if (strategy.position_size > 0) // We have a long position
+    strategy.exit("Long TP/SL", "Long", limit=longTP, stop=longSL)
+
+if (strategy.position_size < 0) // We have a short position
+    strategy.exit("Short TP/SL", "Short", limit=shortTP, stop=shortSL)

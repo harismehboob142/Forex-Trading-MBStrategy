@@ -1,0 +1,33 @@
+//@version=5
+strategy("CCI Alert Strategy", overlay=true, default_qty_type=strategy.fixed, default_qty_value=0.01)
+
+// CCI Calculation
+cciLength = 20
+cciSource = close
+cci = ta.cci(cciSource, cciLength)
+
+// CCI Thresholds
+cciUpperThreshold = 100
+cciLowerThreshold = -100
+
+// Plot CCI
+plot(cci, title="CCI")
+
+// CCI Alert Conditions
+cciCrossUp = cci[1] <= cciUpperThreshold and cci > cciUpperThreshold
+cciCrossDown = cci[1] >= cciLowerThreshold and cci < cciLowerThreshold
+
+// Create Alert Conditions
+alertcondition(cciCrossUp, title="CCI Cross Up", message="CCI has crossed above +100.")
+alertcondition(cciCrossDown, title="CCI Cross Down", message="CCI has crossed below -100.")
+
+// Plot shapes on chart
+plotshape(cciCrossUp, title="CCI Cross Up Marker", location=location.belowbar, color=color.green, style=shape.triangleup, size=size.small)
+plotshape(cciCrossDown, title="CCI Cross Down Marker", location=location.abovebar, color=color.red, style=shape.triangledown, size=size.small)
+
+// Strategy logic for demonstration (no actual trade logic here)
+if (cciCrossUp)
+    strategy.entry("CCI Buy", strategy.long)
+
+if (cciCrossDown)
+    strategy.entry("CCI Sell", strategy.short)
